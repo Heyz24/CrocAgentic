@@ -3,7 +3,7 @@
 ## Founder
 
 **Harshal Vakharia** — Architecture, engineering, vision
-- [harshal.29@icloud.com](mailto:harshal.29@icloud.com)
+- [hey.29.harshal@gmail.com](mailto:hey.29.harshal@gmail.com)
 
 ---
 
