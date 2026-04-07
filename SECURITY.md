@@ -11,7 +11,7 @@
 
 **Do not open a public GitHub issue for security vulnerabilities.**
 
-Email: `harshal.29@icloud.com`
+Email: `hey.29.harshal@gmail.com`
 Subject: `[CrocAgentic Security] Brief description`
 
 Include:
