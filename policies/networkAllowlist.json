@@ -1,0 +1,33 @@
+{
+  "description": "Network domains and endpoints the agent is permitted to reach.",
+  "version": "1.2.0",
+  "allowedDomains": [
+    "registry.npmjs.org",
+    "pypi.org",
+    "files.pythonhosted.org",
+    "github.com",
+    "api.github.com",
+    "raw.githubusercontent.com",
+    "crates.io",
+    "docs.anthropic.com",
+    "api.anthropic.com",
+    "api.openai.com",
+    "generativelanguage.googleapis.com",
+    "api.tavily.com",
+    "api.duckduckgo.com",
+    "duckduckgo.com"
+  ],
+  "deniedDomains": [
+    "*.onion",
+    "*.i2p",
+    "pastebin.com",
+    "requestbin.com",
+    "webhook.site",
+    "ngrok.io",
+    "*.ngrok.io"
+  ],
+  "allowedProtocols": ["https"],
+  "deniedProtocols": ["http", "ftp", "telnet"],
+  "policy": "ALLOWLIST_WITH_EXCEPTIONS",
+  "note": "Add domains to allowedDomains to enable http_request tool access. Use '*' to allow all non-denied domains (not recommended for production)."
+}

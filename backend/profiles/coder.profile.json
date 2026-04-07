@@ -1,0 +1,13 @@
+{
+  "name": "coder",
+  "description": "Software developer profile — full code execution, file I/O, web search for docs. Best with Qwen, Codex, or Claude.",
+  "allowedTools": ["file_read", "file_write", "shell_execute", "code_execute", "web_search"],
+  "permissions": ["READ_FILESYSTEM", "WRITE_FILESYSTEM", "EXECUTE_COMMAND", "PROCESS_SPAWN", "NETWORK_ACCESS"],
+  "preferredLLM": "claude",
+  "qualityThreshold": 60,
+  "maxRetries": 3,
+  "autoApprove": false,
+  "networkAccess": true,
+  "outputValidation": true,
+  "systemPromptExtra": "You are a senior software engineer. Always write clean, tested, production-ready code. Include error handling. After writing code, always suggest how to test it."
+}

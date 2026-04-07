@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CrocAgentic Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Variables ── */
+    :root {
+      --bg:       #090c0f;
+      --surface:  #0f1419;
+      --border:   #1e2730;
+      --accent:   #00e5a0;
+      --accent2:  #0077ff;
+      --warn:     #ffb800;
+      --danger:   #ff3e5e;
+      --text:     #e8edf2;
+      --muted:    #4a5568;
+      --green:    #00e5a0;
+      --radius:   6px;
+      --mono:     'Space Mono', monospace;
+      --sans:     'Syne', sans-serif;
+    }
+
+    html { background: var(--bg); color: var(--text); font-family: var(--sans); }
+    body { min-height: 100vh; overflow-x: hidden; }
+
+    /* ── Animations ── */
+    @keyframes fadeUp   { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:none; } }
+    @keyframes pulse    { 0%,100% { opacity:1; } 50% { opacity:.4; } }
+    @keyframes spin     { to { transform: rotate(360deg); } }
+    @keyframes slideIn  { from { transform: translateX(-100%); opacity:0; } to { transform:none; opacity:1; } }
+    @keyframes glow     { 0%,100% { box-shadow: 0 0 8px var(--accent); } 50% { box-shadow: 0 0 24px var(--accent), 0 0 48px var(--accent); } }
+    @keyframes flow     { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+    @keyframes scanline { 0% { top: -4px; } 100% { top: 100%; } }
+
+    /* ── Layout ── */
+    .app { display: grid; grid-template-columns: 220px 1fr; grid-template-rows: 52px 1fr; min-height: 100vh; }
+
+    /* ── Header ── */
+    header {
+      grid-column: 1 / -1;
+      display: flex; align-items: center; gap: 12px;
+      padding: 0 20px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .logo {
+      font-family: var(--mono); font-size: 14px; font-weight: 700;
+      color: var(--accent);
+      display: flex; align-items: center; gap: 8px;
+      text-decoration: none;
+    }
+    .logo-glyph {
+      width: 28px; height: 28px; border-radius: 6px;
+      background: var(--accent); color: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 700;
+      animation: glow 3s ease-in-out infinite;
+    }
+    .header-status {
+      margin-left: auto; display: flex; align-items: center; gap: 16px;
+      font-family: var(--mono); font-size: 11px; color: var(--muted);
+    }
+    .status-dot {
+      width: 7px; height: 7px; border-radius: 50%; background: var(--accent);
+      animation: pulse 2s infinite;
+    }
+    .header-version { color: var(--muted); }
+
+    /* ── Sidebar ── */
+    aside {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 16px 0;
+      display: flex; flex-direction: column;
+      overflow-y: auto;
+    }
+    .nav-section { padding: 0 12px 8px; margin-bottom: 4px; }
+    .nav-label {
+      font-family: var(--mono); font-size: 9px; font-weight: 700;
+      letter-spacing: .1em; color: var(--muted); text-transform: uppercase;
+      padding: 0 8px 6px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 12px; border-radius: var(--radius); cursor: pointer;
+      font-size: 13px; color: var(--muted); transition: all .15s;
+      border: none; background: none; width: 100%; text-align: left;
+    }
+    .nav-item:hover { background: var(--border); color: var(--text); }
+    .nav-item.active { background: rgba(0,229,160,.1); color: var(--accent); }
+    .nav-item .icon { font-size: 14px; width: 18px; text-align: center; }
+    .nav-badge {
+      margin-left: auto; background: var(--danger);
+      color: #fff; font-size: 10px; font-family: var(--mono);
+      padding: 1px 6px; border-radius: 10px;
+    }
+
+    /* ── Main ── */
+    main { padding: 24px; overflow-y: auto; animation: fadeUp .4s ease; }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px;
+      animation: fadeUp .4s ease both;
+    }
+    .card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .card-title {
+      font-family: var(--mono); font-size: 11px; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--muted);
+    }
+
+    /* ── Stats Row ── */
+    .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 20px; }
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px;
+      animation: fadeUp .4s ease both;
+    }
+    .stat-card:nth-child(1) { animation-delay: .05s; }
+    .stat-card:nth-child(2) { animation-delay: .10s; }
+    .stat-card:nth-child(3) { animation-delay: .15s; }
+    .stat-card:nth-child(4) { animation-delay: .20s; }
+    .stat-label { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-bottom: 8px; }
+    .stat-value { font-family: var(--mono); font-size: 28px; font-weight: 700; color: var(--text); }
+    .stat-value.green  { color: var(--green);  }
+    .stat-value.blue   { color: var(--accent2); }
+    .stat-value.yellow { color: var(--warn);    }
+    .stat-value.red    { color: var(--danger);  }
+    .stat-sub { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-top: 4px; }
+
+    /* ── Input area ── */
+    .input-area {
+      display: flex; gap: 10px; margin-bottom: 20px;
+      animation: fadeUp .4s .1s ease both;
+    }
+    .goal-input {
+      flex: 1; background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 12px 16px;
+      font-family: var(--mono); font-size: 13px; color: var(--text);
+      outline: none; transition: border-color .2s;
+    }
+    .goal-input::placeholder { color: var(--muted); }
+    .goal-input:focus { border-color: var(--accent); }
+    .run-btn {
+      background: var(--accent); color: var(--bg);
+      border: none; border-radius: var(--radius); padding: 12px 24px;
+      font-family: var(--mono); font-size: 12px; font-weight: 700;
+      cursor: pointer; transition: all .15s; white-space: nowrap;
+    }
+    .run-btn:hover { filter: brightness(1.15); transform: translateY(-1px); }
+    .run-btn:active { transform: none; }
+    .run-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+    /* ── Pipeline Trace ── */
+    .pipeline { display: flex; flex-direction: column; gap: 6px; }
+    .agent-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 8px 12px; border-radius: var(--radius);
+      border: 1px solid transparent; transition: all .2s;
+      animation: slideIn .3s ease both;
+    }
+    .agent-row.pending  { border-color: var(--border); opacity: .4; }
+    .agent-row.running  { border-color: var(--accent2); background: rgba(0,119,255,.06); }
+    .agent-row.done     { border-color: var(--border); background: rgba(0,229,160,.04); }
+    .agent-row.blocked  { border-color: var(--danger); background: rgba(255,62,94,.06); }
+    .agent-icon { font-size: 14px; width: 20px; text-align: center; }
+    .agent-name { font-family: var(--mono); font-size: 11px; font-weight: 700; min-width: 180px; }
+    .agent-name.green  { color: var(--green);  }
+    .agent-name.blue   { color: var(--accent2); }
+    .agent-name.muted  { color: var(--muted);   }
+    .agent-decision { font-family: var(--mono); font-size: 11px; color: var(--muted); flex: 1; }
+    .agent-ms { font-family: var(--mono); font-size: 10px; color: var(--muted); text-align: right; }
+    .agent-spinner { width: 12px; height: 12px; border: 2px solid var(--border); border-top-color: var(--accent2); border-radius: 50%; animation: spin .6s linear infinite; }
+
+    /* ── Output box ── */
+    .output-box {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px;
+      font-family: var(--mono); font-size: 12px; color: var(--text);
+      min-height: 120px; max-height: 300px; overflow-y: auto;
+      white-space: pre-wrap; word-break: break-word;
+      position: relative;
+    }
+    .output-box::before {
+      content: ''; position: absolute; left: 0; right: 0; height: 2px;
+      background: var(--accent); opacity: .3; top: -1px; border-radius: 2px;
+    }
+
+    /* ── Memory panel ── */
+    .memory-layers { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
+    .mem-layer {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 12px;
+    }
+    .mem-layer-name { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-bottom: 6px; }
+    .mem-count { font-family: var(--mono); font-size: 22px; font-weight: 700; color: var(--accent); }
+    .mem-desc { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-top: 4px; }
+
+    /* ── Connector grid ── */
+    .connector-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
+    .connector-card {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 12px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .connector-icon { font-size: 20px; }
+    .connector-name { font-family: var(--mono); font-size: 11px; font-weight: 700; }
+    .connector-status { font-family: var(--mono); font-size: 10px; margin-top: 2px; }
+    .connector-status.active { color: var(--green); }
+    .connector-status.inactive { color: var(--muted); }
+
+    /* ── Profile pills ── */
+    .profile-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+    .pill {
+      font-family: var(--mono); font-size: 11px;
+      padding: 4px 12px; border-radius: 20px; cursor: pointer;
+      border: 1px solid var(--border); color: var(--muted);
+      background: none; transition: all .15s;
+    }
+    .pill:hover, .pill.active {
+      border-color: var(--accent); color: var(--accent);
+      background: rgba(0,229,160,.08);
+    }
+
+    /* ── Pages ── */
+    .page { display: none; }
+    .page.active { display: block; animation: fadeUp .3s ease; }
+
+    /* ── Grid layouts ── */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+    .gap-16 { display: flex; flex-direction: column; gap: 16px; }
+
+    /* ── Tags ── */
+    .tag {
+      font-family: var(--mono); font-size: 10px;
+      padding: 2px 8px; border-radius: 4px;
+      display: inline-block;
+    }
+    .tag.low    { background: rgba(0,229,160,.15); color: var(--green); }
+    .tag.med    { background: rgba(255,184,0,.15);  color: var(--warn);  }
+    .tag.high   { background: rgba(255,62,94,.15);  color: var(--danger); }
+    .tag.done   { background: rgba(0,229,160,.15); color: var(--green); }
+    .tag.failed { background: rgba(255,62,94,.15);  color: var(--danger); }
+
+    /* ── Table ── */
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th {
+      font-family: var(--mono); font-size: 10px; letter-spacing: .06em;
+      text-transform: uppercase; color: var(--muted); text-align: left;
+      padding: 8px 12px; border-bottom: 1px solid var(--border);
+    }
+    .data-table td {
+      font-family: var(--mono); font-size: 11px;
+      padding: 10px 12px; border-bottom: 1px solid rgba(30,39,48,.6);
+      color: var(--text);
+    }
+    .data-table tr:hover td { background: rgba(255,255,255,.02); }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      .app { grid-template-columns: 1fr; }
+      aside { display: none; }
+      .stats-row { grid-template-columns: 1fr 1fr; }
+      .connector-grid { grid-template-columns: 1fr 1fr; }
+      .two-col, .three-col, .memory-layers { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <header>
+    <a class="logo" href="#">
+      <div class="logo-glyph">🐊</div>
+      CrocAgentic
+    </a>
+    <div class="header-status">
+      <div class="status-dot"></div>
+      <span id="llmStatus">Loading...</span>
+      <span class="header-version">v1.0.0</span>
+    </div>
+  </header>
+
+  <!-- Sidebar -->
+  <aside>
+    <div class="nav-section">
+      <div class="nav-label">Agent</div>
+      <button class="nav-item active" onclick="showPage('run')">
+        <span class="icon">▶</span> Run Task
+      </button>
+      <button class="nav-item" onclick="showPage('pipeline')">
+        <span class="icon">⬡</span> Pipeline
+      </button>
+      <button class="nav-item" onclick="showPage('history')">
+        <span class="icon">≡</span> History
+      </button>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">System</div>
+      <button class="nav-item" onclick="showPage('memory')">
+        <span class="icon">◈</span> Memory
+      </button>
+      <button class="nav-item" onclick="showPage('connectors')">
+        <span class="icon">⌁</span> Connectors
+      </button>
+      <button class="nav-item" onclick="showPage('security')">
+        <span class="icon">⊡</span> Security
+      </button>
+      <button class="nav-item" onclick="showPage('escalations')">
+        <span class="icon">⚑</span> Escalations
+        <span class="nav-badge" id="escalBadge" style="display:none">0</span>
+      </button>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Config</div>
+      <button class="nav-item" onclick="showPage('tools')">
+        <span class="icon">⚙</span> Tools
+      </button>
+      <button class="nav-item" onclick="showPage('profiles')">
+        <span class="icon">◉</span> Profiles
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main>
+
+    <!-- ── Run Task ── -->
+    <div class="page active" id="page-run">
+      <div class="stats-row" id="statsRow">
+        <div class="stat-card"><div class="stat-label">TOTAL TASKS</div><div class="stat-value" id="s-total">—</div><div class="stat-sub">all time</div></div>
+        <div class="stat-card"><div class="stat-label">COMPLETED</div><div class="stat-value green" id="s-done">—</div><div class="stat-sub">success</div></div>
+        <div class="stat-card"><div class="stat-label">LLM MODEL</div><div class="stat-value blue" style="font-size:14px;padding-top:8px" id="s-model">—</div><div class="stat-sub" id="s-provider">loading</div></div>
+        <div class="stat-card"><div class="stat-label">MEMORY</div><div class="stat-value yellow" id="s-memory">—</div><div class="stat-sub">entries</div></div>
+      </div>
+
+      <div class="input-area">
+        <input class="goal-input" id="goalInput" placeholder="Type your task in plain English..." autofocus
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();runTask()}" />
+        <div class="profile-pills" style="gap:6px;align-items:center">
+          <button class="pill active" onclick="selectProfile(this,'default')">default</button>
+          <button class="pill" onclick="selectProfile(this,'coder')">coder</button>
+          <button class="pill" onclick="selectProfile(this,'analyst')">analyst</button>
+          <button class="pill" onclick="selectProfile(this,'worker')">worker</button>
+        </div>
+        <button class="run-btn" id="runBtn" onclick="runTask()">▶ Run</button>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Agent Pipeline</div>
+            <span id="pipeStatus" class="tag" style="display:none"></span>
+          </div>
+          <div class="pipeline" id="pipelineTrace"></div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Output</div>
+            <span id="taskId" style="font-family:var(--mono);font-size:10px;color:var(--muted)"></span>
+          </div>
+          <div class="output-box" id="outputBox">Waiting for task...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Memory ── -->
+    <div class="page" id="page-memory">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Memory System</div>
+          <button class="run-btn" style="padding:6px 14px;font-size:11px" onclick="loadMemory()">Refresh</button>
+        </div>
+        <div class="memory-layers" id="memLayers">
+          <div class="mem-layer"><div class="mem-layer-name">SHORT-TERM</div><div class="mem-count" id="m-short">—</div><div class="mem-desc">current session</div></div>
+          <div class="mem-layer"><div class="mem-layer-name">MEDIUM-TERM</div><div class="mem-count" id="m-med">—</div><div class="mem-desc">90-day TTL</div></div>
+          <div class="mem-layer"><div class="mem-layer-name">LONG-TERM</div><div class="mem-count" id="m-long">—</div><div class="mem-desc">permanent</div></div>
+        </div>
+        <div style="margin-top:16px">
+          <div class="card-title" style="margin-bottom:10px">Recent Entries</div>
+          <div id="memEntries" style="font-family:var(--mono);font-size:11px;color:var(--muted)">Loading...</div>
+        </div>
+        <div style="margin-top:16px;display:flex;gap:10px">
+          <input class="goal-input" id="prefKey" placeholder="Preference key" style="flex:.4" />
+          <input class="goal-input" id="prefVal" placeholder="Preference value" style="flex:1" />
+          <button class="run-btn" style="padding:8px 16px;font-size:11px" onclick="addPref()">Save Preference</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Connectors ── -->
+    <div class="page" id="page-connectors">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Connectors</div>
+          <button class="run-btn" style="padding:6px 14px;font-size:11px" onclick="loadConnectors()">Refresh</button>
+        </div>
+        <div class="connector-grid" id="connectorGrid">Loading...</div>
+      </div>
+    </div>
+
+    <!-- ── Security ── -->
+    <div class="page" id="page-security">
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-header"><div class="card-title">Security Status</div></div>
+        <div id="secStatus" style="font-family:var(--mono);font-size:12px">Loading...</div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Scan Text</div></div>
+        <div style="display:flex;gap:10px;margin-bottom:12px">
+          <input class="goal-input" id="scanText" placeholder="Enter text to scan for secrets or injections..." style="flex:1" />
+          <select class="goal-input" id="scanType" style="width:120px">
+            <option value="">Both</option>
+            <option value="secrets">Secrets</option>
+            <option value="rag">RAG Injection</option>
+          </select>
+          <button class="run-btn" style="padding:8px 16px;font-size:11px" onclick="runScan()">Scan</button>
+        </div>
+        <div class="output-box" id="scanResult" style="min-height:80px">Scan results will appear here...</div>
+      </div>
+    </div>
+
+    <!-- ── Escalations ── -->
+    <div class="page" id="page-escalations">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Escalations</div>
+          <button class="run-btn" style="padding:6px 14px;font-size:11px" onclick="loadEscalations()">Refresh</button>
+        </div>
+        <div id="escalList">Loading...</div>
+      </div>
+    </div>
+
+    <!-- ── History ── -->
+    <div class="page" id="page-history">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Task History</div>
+          <button class="run-btn" style="padding:6px 14px;font-size:11px" onclick="loadHistory()">Refresh</button>
+        </div>
+        <table class="data-table">
+          <thead><tr><th>Task ID</th><th>Goal</th><th>Status</th><th>Risk</th><th>Duration</th></tr></thead>
+          <tbody id="historyBody"><tr><td colspan="5" style="color:var(--muted);text-align:center;padding:20px">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── Tools ── -->
+    <div class="page" id="page-tools">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Available Tools</div></div>
+        <div id="toolsList">Loading...</div>
+      </div>
+    </div>
+
+    <!-- ── Profiles ── -->
+    <div class="page" id="page-profiles">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Agent Profiles</div></div>
+        <div id="profilesList" class="connector-grid">Loading...</div>
+      </div>
+    </div>
+
+    <!-- ── Pipeline trace page ── -->
+    <div class="page" id="page-pipeline">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Live Pipeline Trace</div>
+          <span style="font-family:var(--mono);font-size:10px;color:var(--muted)">Real-time agent execution</span>
+        </div>
+        <div class="pipeline" id="liveTrace">
+          <div style="font-family:var(--mono);font-size:12px;color:var(--muted);padding:20px;text-align:center">
+            Run a task to see the live pipeline trace
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+const API = 'http://localhost:3000';
+let currentProfile = 'default';
+let running = false;
+
+const AGENTS = [
+  { id:'MemoryAgent',          icon:'◈', label:'Memory Agent',        phase:'read' },
+  { id:'SecB_InjectionDetector',icon:'⊡',label:'Sec B — Injection',   phase:'scan' },
+  { id:'Thinker',              icon:'◉', label:'Thinker (LLM)',        phase:'plan' },
+  { id:'Tester',               icon:'◻', label:'Tester',              phase:'test' },
+  { id:'SecA_PolicyGuard',     icon:'⊡', label:'Sec A — Policy',      phase:'policy' },
+  { id:'SecC_AuditIntegrity',  icon:'⊡', label:'Sec C — Audit',       phase:'audit' },
+  { id:'Decider',              icon:'⬡', label:'Decider',             phase:'decide' },
+  { id:'Allocator',            icon:'⬡', label:'Allocator',           phase:'alloc' },
+  { id:'RollbackAgent',        icon:'↩', label:'Rollback — Begin',    phase:'rb' },
+  { id:'Executor',             icon:'▶', label:'Executor',            phase:'exec' },
+  { id:'Monitor',              icon:'◎', label:'Monitor',             phase:'monitor' },
+  { id:'OutputValidator',      icon:'✓', label:'Output Validator',    phase:'validate' },
+  { id:'MemoryAgent2',         icon:'◈', label:'Memory Agent',        phase:'write' },
+  { id:'Manager',              icon:'⬡', label:'Manager',             phase:'health' },
+];
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + name)?.classList.add('active');
+  event?.currentTarget?.classList.add('active');
+  if (name === 'memory')      loadMemory();
+  if (name === 'connectors')  loadConnectors();
+  if (name === 'security')    loadSecurity();
+  if (name === 'escalations') loadEscalations();
+  if (name === 'history')     loadHistory();
+  if (name === 'tools')       loadTools();
+  if (name === 'profiles')    loadProfiles();
+}
+
+function selectProfile(btn, profile) {
+  document.querySelectorAll('.profile-pills .pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  currentProfile = profile;
+}
+
+function initPipeline() {
+  const trace = document.getElementById('pipelineTrace');
+  const live  = document.getElementById('liveTrace');
+  trace.innerHTML = AGENTS.map(a =>
+    `<div class="agent-row pending" id="ar-${a.id}">
+       <span class="agent-icon">${a.icon}</span>
+       <span class="agent-name muted">${a.label}</span>
+       <span class="agent-decision">—</span>
+       <span class="agent-ms"></span>
+     </div>`
+  ).join('');
+  live.innerHTML = trace.innerHTML;
+}
+
+function updateAgent(id, state, decision, ms) {
+  const selectors = [`#ar-${id}`, `#ar-${id}2`];
+  for (const sel of selectors) {
+    const el = document.querySelector(sel) || document.getElementById('ar-' + id);
+    if (!el) continue;
+    el.className = 'agent-row ' + state;
+    const nameEl = el.querySelector('.agent-name');
+    if (nameEl) {
+      nameEl.className = 'agent-name ' + (state === 'done' ? 'green' : state === 'running' ? 'blue' : 'muted');
+    }
+    const decEl = el.querySelector('.agent-decision');
+    if (decEl && decision) decEl.textContent = decision;
+    const msEl = el.querySelector('.agent-ms');
+    if (msEl && ms !== undefined) msEl.textContent = ms + 'ms';
+  }
+  // Sync to live trace
+  const liveEl = document.querySelector('#liveTrace #ar-' + id);
+  if (liveEl) {
+    const src = document.getElementById('ar-' + id);
+    if (src) liveEl.innerHTML = src.innerHTML;
+    liveEl.className = 'agent-row ' + state;
+  }
+}
+
+async function runTask() {
+  if (running) return;
+  const goal = document.getElementById('goalInput').value.trim();
+  if (!goal) return;
+
+  running = true;
+  document.getElementById('runBtn').disabled = true;
+  document.getElementById('outputBox').textContent = '⏳ Processing...';
+  document.getElementById('pipeStatus').style.display = 'none';
+  document.getElementById('taskId').textContent = '';
+
+  initPipeline();
+
+  // Animate agents as running sequentially (visual only while waiting for response)
+  let agentIdx = 0;
+  const animTimer = setInterval(() => {
+    if (agentIdx > 0) updateAgent(AGENTS[agentIdx-1].id, 'done', '', 0);
+    if (agentIdx < AGENTS.length) {
+      updateAgent(AGENTS[agentIdx].id, 'running', 'processing...', 0);
+      agentIdx++;
+    } else {
+      clearInterval(animTimer);
+    }
+  }, 800);
+
+  try {
+    const res  = await fetch(`${API}/agent/execute`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ goal, profile: currentProfile, autoApproveLowRisk: true }),
+    });
+    const data = await res.json();
+    clearInterval(animTimer);
+
+    // Update pipeline from real trace
+    initPipeline();
+    if (data.agentTrace) {
+      // Mark all as done first
+      for (const entry of data.agentTrace) {
+        const id = entry.agent === 'MemoryAgent' && data.agentTrace.filter(a=>a.agent==='MemoryAgent').indexOf(entry) === 1
+          ? 'MemoryAgent2' : entry.agent;
+        updateAgent(id, entry.success ? 'done' : 'blocked', entry.decision ?? entry.error ?? '', entry.durationMs);
+      }
+    }
+
+    // Output
+    const steps  = data.execution?.steps ?? [];
+    const output = steps.map(s => s.stdout).filter(Boolean).join('\n') || data.reason || 'Task completed.';
+    document.getElementById('outputBox').textContent = output;
+
+    // Status tag
+    const tag = document.getElementById('pipeStatus');
+    tag.className = 'tag ' + (data.finalStatus === 'COMPLETED' ? 'done' : 'failed');
+    tag.textContent = data.finalStatus;
+    tag.style.display = 'inline-block';
+
+    document.getElementById('taskId').textContent = data.taskId?.slice(0,8) + '...';
+    loadStats();
+  } catch (err) {
+    clearInterval(animTimer);
+    document.getElementById('outputBox').textContent = '✗ Error: ' + err.message + '\n\nMake sure the server is running:\n  npm run dev';
+  }
+
+  running = false;
+  document.getElementById('runBtn').disabled = false;
+}
+
+async function loadStats() {
+  try {
+    const [llm, mem, tasks] = await Promise.all([
+      fetch(`${API}/llm/status`).then(r=>r.json()),
+      fetch(`${API}/memory/stats`).then(r=>r.json()),
+      fetch(`${API}/tasks/stats`).then(r=>r.json()),
+    ]);
+    document.getElementById('s-model').textContent    = llm.model || '—';
+    document.getElementById('s-provider').textContent = llm.provider || '—';
+    document.getElementById('s-memory').textContent   = mem.total ?? '—';
+    document.getElementById('s-total').textContent    = tasks.total ?? '—';
+    document.getElementById('s-done').textContent     = tasks.completed ?? '—';
+    document.getElementById('llmStatus').textContent  = llm.configured ? `${llm.provider} / ${llm.model}` : 'No LLM — run: npm run setup';
+
+    // Escalation badge
+    const escl = await fetch(`${API}/escalation/stats`).then(r=>r.json());
+    const badge = document.getElementById('escalBadge');
+    if (escl.pending > 0) { badge.textContent = escl.pending; badge.style.display = 'inline'; }
+    else badge.style.display = 'none';
+  } catch { document.getElementById('llmStatus').textContent = 'Server offline'; }
+}
+
+async function loadMemory() {
+  try {
+    const stats   = await fetch(`${API}/memory/stats`).then(r=>r.json());
+    const entries = await fetch(`${API}/memory?limit=10`).then(r=>r.json());
+    document.getElementById('m-short').textContent = stats.shortTerm ?? '—';
+    document.getElementById('m-med').textContent   = stats.mediumTerm ?? '—';
+    document.getElementById('m-long').textContent  = stats.longTerm ?? '—';
+    const list = Array.isArray(entries) ? entries : [];
+    document.getElementById('memEntries').innerHTML = list.length === 0
+      ? '<span style="color:var(--muted)">No memory entries yet. Run some tasks first.</span>'
+      : list.map(e =>
+          `<div style="padding:6px 0;border-bottom:1px solid var(--border)">
+            <span style="color:var(--accent)">[${e.layer}/${e.category}]</span>
+            <span style="color:var(--muted)"> ${e.key}: </span>
+            <span>${(e.content||'').slice(0,80)}</span>
+           </div>`
+        ).join('');
+  } catch { document.getElementById('memEntries').textContent = 'Server offline'; }
+}
+
+async function addPref() {
+  const key = document.getElementById('prefKey').value.trim();
+  const val = document.getElementById('prefVal').value.trim();
+  if (!key || !val) return;
+  try {
+    await fetch(`${API}/memory/preference`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ key, value: val }),
+    });
+    document.getElementById('prefKey').value = '';
+    document.getElementById('prefVal').value = '';
+    loadMemory();
+  } catch {}
+}
+
+async function loadConnectors() {
+  try {
+    const data = await fetch(`${API}/connectors/status`).then(r=>r.json());
+    const icons = { webhook:'⌁', filewatch:'📁', email:'✉', telegram:'✈', slack:'#', github:'🐙', whatsapp:'💬', notion:'◻', drive:'📂' };
+    document.getElementById('connectorGrid').innerHTML = Object.entries(data).map(([k,v]) =>
+      `<div class="connector-card">
+        <span class="connector-icon">${icons[k]||'⌁'}</span>
+        <div>
+          <div class="connector-name">${k.toUpperCase()}</div>
+          <div class="connector-status ${v.active ? 'active' : 'inactive'}">${v.active ? '● active' : '○ not configured'}</div>
+        </div>
+       </div>`
+    ).join('');
+  } catch { document.getElementById('connectorGrid').textContent = 'Server offline'; }
+}
+
+async function loadSecurity() {
+  try {
+    const data = await fetch(`${API}/security/status`).then(r=>r.json());
+    document.getElementById('secStatus').innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+        <div><div style="color:var(--muted);margin-bottom:4px">Injection Patterns</div><div style="color:var(--accent);font-size:20px;font-weight:700">${data.injectionPatterns}</div></div>
+        <div><div style="color:var(--muted);margin-bottom:4px">Secret Patterns</div><div style="color:var(--accent);font-size:20px;font-weight:700">${data.secretPatterns}</div></div>
+        <div><div style="color:var(--muted);margin-bottom:4px">RAG Patterns</div><div style="color:var(--accent);font-size:20px;font-weight:700">${data.ragPatterns}</div></div>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:16px">
+        <span style="color:${data.rateLimiting ? 'var(--green)' : 'var(--danger)'}">● Rate Limiting</span>
+        <span style="color:${data.networkMonitor ? 'var(--green)' : 'var(--danger)'}">● Network Monitor</span>
+        <span style="color:${data.modelFingerprint ? 'var(--green)' : 'var(--danger)'}">● Model Fingerprint</span>
+      </div>`;
+  } catch { document.getElementById('secStatus').textContent = 'Server offline'; }
+}
+
+async function runScan() {
+  const text = document.getElementById('scanText').value.trim();
+  const type = document.getElementById('scanType').value;
+  if (!text) return;
+  document.getElementById('scanResult').textContent = 'Scanning...';
+  try {
+    const res  = await fetch(`${API}/security/scan`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ text, type }),
+    });
+    const data = await res.json();
+    document.getElementById('scanResult').textContent = JSON.stringify(data, null, 2);
+  } catch (err) { document.getElementById('scanResult').textContent = 'Error: ' + err.message; }
+}
+
+async function loadEscalations() {
+  try {
+    const data = await fetch(`${API}/escalation/pending`).then(r=>r.json());
+    document.getElementById('escalList').innerHTML = data.length === 0
+      ? '<div style="font-family:var(--mono);font-size:12px;color:var(--muted);padding:20px;text-align:center">No pending escalations ✓</div>'
+      : data.map(e => `
+          <div style="border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+              <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--warn)">${e.trigger}</span>
+              <span class="tag ${e.risk==='HIGH'?'high':'med'}">${e.risk}</span>
+            </div>
+            <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:8px">${e.evidence?.goal?.slice(0,100)}</div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:10px">ID: ${e.id} · Expires: ${new Date(e.expiresAt).toLocaleString()}</div>
+            <div style="display:flex;gap:8px">
+              <button class="run-btn" style="padding:6px 12px;font-size:10px;background:var(--green)" onclick="resolveEscalation('${e.id}',true)">✓ Approve</button>
+              <button class="run-btn" style="padding:6px 12px;font-size:10px;background:var(--danger)" onclick="resolveEscalation('${e.id}',false)">✗ Reject</button>
+            </div>
+          </div>`).join('');
+  } catch { document.getElementById('escalList').textContent = 'Server offline'; }
+}
+
+async function resolveEscalation(id, approve) {
+  try {
+    await fetch(`${API}/escalation/${id}/${approve?'approve':'reject'}`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ resolution: approve ? 'Approved via dashboard' : 'Rejected via dashboard' }),
+    });
+    loadEscalations();
+  } catch {}
+}
+
+async function loadHistory() {
+  try {
+    const data = await fetch(`${API}/tasks?limit=20`).then(r=>r.json());
+    const tasks = Array.isArray(data) ? data : (data.tasks ?? []);
+    document.getElementById('historyBody').innerHTML = tasks.length === 0
+      ? '<tr><td colspan="5" style="color:var(--muted);text-align:center;padding:20px">No tasks yet</td></tr>'
+      : tasks.map(t => `
+          <tr>
+            <td style="color:var(--muted)">${t.taskId?.slice(0,8)}...</td>
+            <td>${(t.goal||'').slice(0,60)}</td>
+            <td><span class="tag ${t.finalStatus==='COMPLETED'?'done':'failed'}">${t.finalStatus||'—'}</span></td>
+            <td><span class="tag ${(t.riskScore||'').toLowerCase()}">${t.riskScore||'—'}</span></td>
+            <td style="color:var(--muted)">${t.durationMs ? t.durationMs+'ms' : '—'}</td>
+          </tr>`).join('');
+  } catch { document.getElementById('historyBody').innerHTML = '<tr><td colspan="5" style="color:var(--muted);text-align:center">Server offline</td></tr>'; }
+}
+
+async function loadTools() {
+  try {
+    const data = await fetch(`${API}/tools`).then(r=>r.json());
+    document.getElementById('toolsList').innerHTML = `
+      <div style="margin-bottom:10px;font-family:var(--mono);font-size:11px;color:var(--muted)">${data.total} tools available</div>
+      <div class="connector-grid">
+        ${(data.tools||[]).map(t => `
+          <div class="connector-card" style="flex-direction:column;align-items:flex-start;gap:4px">
+            <div style="display:flex;justify-content:space-between;width:100%;align-items:center">
+              <span class="connector-name">${t.name}</span>
+              <span class="tag ${t.dangerous ? 'high' : 'low'}">${t.dangerous ? 'dangerous' : 'safe'}</span>
+            </div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--muted)">${t.description}</div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--accent2)">${(t.permissions||[]).join(', ')}</div>
+          </div>`).join('')}
+      </div>`;
+  } catch { document.getElementById('toolsList').textContent = 'Server offline'; }
+}
+
+async function loadProfiles() {
+  try {
+    const data = await fetch(`${API}/profiles`).then(r=>r.json());
+    document.getElementById('profilesList').innerHTML = (data.profiles||[]).map(p => `
+      <div class="connector-card" style="flex-direction:column;align-items:flex-start;gap:6px">
+        <div class="connector-name">${p.name.toUpperCase()}</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted)">${p.description}</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--accent2)">Quality: ${p.qualityThreshold}%</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted)">${(p.allowedTools||[]).join(', ')}</div>
+      </div>`).join('');
+  } catch { document.getElementById('profilesList').textContent = 'Server offline'; }
+}
+
+// Init
+initPipeline();
+loadStats();
+setInterval(loadStats, 30000);
+</script>
+</body>
+</html>

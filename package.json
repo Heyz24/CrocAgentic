@@ -1,0 +1,52 @@
+{
+  "name": "crocagentic",
+  "version": "0.12.0",
+  "description": "Secure, modular, lightweight AI agent core — Phase 12 — CLI + Build",
+  "main": "dist/backend/server.js",
+  "scripts": {
+    "build":          "tsc",
+    "start":          "node dist/backend/server.js",
+    "dev":            "ts-node backend/server.ts",
+    "setup":          "ts-node scripts/setup.ts",
+    "setup:models":   "ts-node scripts/setupModels.ts",
+    "test":           "ts-node tests/testPolicyEngine.ts && ts-node tests/testPlanner.ts && ts-node tests/testExecutor.ts && ts-node tests/testPipeline.ts && ts-node tests/testLLM.ts && ts-node tests/testTools.ts && ts-node tests/testConnectors.ts && ts-node tests/testMemory.ts && ts-node tests/testEscalation.ts && ts-node tests/testRollback.ts && ts-node tests/testSecurity.ts && ts-node tests/testConnectors2.ts && ts-node tests/testCLI.ts",
+    "test:phase1":    "ts-node tests/testPolicyEngine.ts && ts-node tests/testPlanner.ts",
+    "test:phase2":    "ts-node tests/testExecutor.ts",
+    "test:phase3":    "ts-node tests/testPipeline.ts",
+    "test:phase4":    "ts-node tests/testLLM.ts",
+    "test:phase5":    "ts-node tests/testTools.ts",
+    "test:phase6":    "ts-node tests/testConnectors.ts",
+    "test:phase7":    "ts-node tests/testMemory.ts",
+    "test:phase8":    "ts-node tests/testEscalation.ts",
+    "test:phase9":    "ts-node tests/testRollback.ts",
+    "test:phase10":   "ts-node tests/testSecurity.ts",
+    "test:phase11":   "ts-node tests/testConnectors2.ts",
+    "test:phase12":   "ts-node tests/testCLI.ts",
+    "verify:deps":    "ts-node scripts/verifyDeps.ts",
+    "build:full":     "ts-node scripts/build.ts",
+    "cli":            "ts-node cli/index.ts"
+  },
+  "dependencies": {
+    "fastify":       "^5.8.4",
+    "@fastify/cors": "^10.0.2",
+    "zod":           "^3.22.4",
+    "sql.js":        "^1.11.0",
+    "uuid":          "^9.0.0",
+    "pino-pretty":   "^13.0.0",
+    "nodemailer":    "^6.9.0",
+    "imap-simple":   "^1.6.3"
+  },
+  "devDependencies": {
+    "@types/node":       "^20.11.5",
+    "@types/sql.js":     "^1.4.9",
+    "@types/uuid":       "^9.0.7",
+    "@types/nodemailer": "^6.4.14",
+    "ts-node":           "^10.9.2",
+    "typescript":        "^5.3.3"
+  },
+  "optionalDependencies": {
+    "pdf-parse": "^1.1.1"
+  },
+  "engines": { "node": ">=18.0.0" },
+  "license": "MIT"
+}

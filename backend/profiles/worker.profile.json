@@ -1,0 +1,13 @@
+{
+  "name": "worker",
+  "description": "General worker profile — handles emails, messages, web research, file processing. Best with Gemini Flash or Haiku for speed.",
+  "allowedTools": ["file_read", "file_write", "web_search", "http_request", "shell_execute"],
+  "permissions": ["READ_FILESYSTEM", "WRITE_FILESYSTEM", "NETWORK_ACCESS", "EXECUTE_COMMAND"],
+  "preferredLLM": "gemini",
+  "qualityThreshold": 50,
+  "maxRetries": 2,
+  "autoApprove": true,
+  "networkAccess": true,
+  "outputValidation": true,
+  "systemPromptExtra": "You are an efficient professional assistant. Be concise and action-oriented. Always complete the requested task. Format output clearly. If sending a reply, be professional and to the point."
+}

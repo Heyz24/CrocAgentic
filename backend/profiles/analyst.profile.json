@@ -1,0 +1,13 @@
+{
+  "name": "analyst",
+  "description": "Data analyst profile — file analysis, PDF reading, structured data. Best with GPT-4o or Claude Opus. Output only goes to supervisor after quality gate passes.",
+  "allowedTools": ["file_read", "pdf_read", "web_search", "http_request", "code_execute"],
+  "permissions": ["READ_FILESYSTEM", "NETWORK_ACCESS", "EXECUTE_COMMAND", "PROCESS_SPAWN"],
+  "preferredLLM": "openai",
+  "qualityThreshold": 75,
+  "maxRetries": 2,
+  "autoApprove": false,
+  "networkAccess": true,
+  "outputValidation": true,
+  "systemPromptExtra": "You are a senior data analyst. Always cite data sources. Provide confidence levels for your conclusions. Structure output with: Executive Summary, Key Findings, Data Analysis, Recommendations. Only output when you are confident in accuracy."
+}

@@ -1,0 +1,51 @@
+version: "3.9"
+
+services:
+  crocagentic:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    image: crocagentic:latest
+    container_name: crocagentic-core
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      HOST: "0.0.0.0"
+      LOG_LEVEL: "info"
+      CORS_ORIGIN: "*"
+    volumes:
+      # Persist SQLite audit database outside container
+      - crocagentic_data:/app/data
+      # Mount policies as read-only (allows external policy updates)
+      - ./policies:/app/policies:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - crocagentic_net
+    # Security: drop all capabilities, read-only root fs except data/tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp:mode=1777,size=64m
+
+volumes:
+  crocagentic_data:
+    driver: local
+
+networks:
+  crocagentic_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16

@@ -1,0 +1,30 @@
+
+🐊 CrocAgentic — Policy Engine Tests
+
+[ Approval — Safe Plans ]
+  ✅ PASS  approves a safe ls command in /workspace
+  ✅ PASS  approves npm test with EXECUTE_COMMAND permission
+  ✅ PASS  assigns LOW risk to a simple read-only plan
+  ✅ PASS  assigns HIGH risk to a build plan (EXECUTE_COMMAND + WRITE_FILESYSTEM)
+
+[ Denial — Dangerous Commands ]
+  ✅ PASS  blocks rm command
+  ✅ PASS  blocks sudo command
+  ✅ PASS  blocks curl | bash pattern
+
+[ Scope — Folder Restrictions ]
+  ✅ PASS  blocks cwd outside allowed scope (/etc)
+
+[ Allowlist — Unknown Commands ]
+  ✅ PASS  flags unknown command not on allowlist (medium risk)
+
+[ Multi-step Plans ]
+  ✅ PASS  fails a multi-step plan if ANY step violates policy
+
+[ Permission Validation ]
+  ✅ PASS  flags unknown permissions
+
+─────────────────────────────────────
+Policy Engine Tests: 11 passed, 0 failed
+
+🎉 All policy engine tests passed!

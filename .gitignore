@@ -1,0 +1,47 @@
+# API Keys and Config — NEVER commit
+.env
+crocagentic.config.json
+crocagentic.models.json
+.webhook_secret
+
+# Runtime data — user-specific
+runtime/
+data/
+dist/
+
+# Dependencies
+node_modules/
+
+# Build artifacts
+*.js.map
+*.d.ts
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+
+# IDE
+.vscode/settings.json
+.idea/
+*.iml
+
+# Logs
+*.log
+npm-debug.log*
+
+# Database
+*.db
+*.db-shm
+*.db-wal
+
+# Test artifacts
+coverage/
+.nyc_output/
+
+# Plugin secrets
+plugins/*.key
+plugins/*.secret
+plugins/*.env

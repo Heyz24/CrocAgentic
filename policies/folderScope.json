@@ -1,0 +1,27 @@
+{
+  "description": "Filesystem paths the agent is permitted to operate in.",
+  "version": "1.1.0",
+  "allowedPaths": [
+    "/workspace",
+    "/workspace/src",
+    "/workspace/output",
+    "/workspace/data",
+    "/workspace/tmp",
+    "/tmp/crocagentic",
+    "/home/agent/workspace"
+  ],
+  "deniedPaths": [
+    "/etc",
+    "/bin",
+    "/sbin",
+    "/usr",
+    "/boot",
+    "/sys",
+    "/proc",
+    "/dev",
+    "/root",
+    "/var",
+    "/home/root"
+  ],
+  "policy": "ALLOWLIST_ONLY"
+}
