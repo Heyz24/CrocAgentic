@@ -12,7 +12,7 @@
 
 *Bring your own LLM. We handle everything else.*
 
-[**Quick Start**](#quick-start) · [**Features**](#features) · [**Connectors**](#connectors) · [**Contributing**](CONTRIBUTING.md) · [**Releases**](https://github.com/crocagentic/crocagentic/releases)
+[**Quick Start**](#quick-start) · [**Features**](#features) · [**Connectors**](#connectors) · [**Contributing**](CONTRIBUTING.md) · [**Releases**](https://github.com/Heyz24/crocagentic/releases)
 
 </div>
 
