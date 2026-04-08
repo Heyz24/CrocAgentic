@@ -34,7 +34,7 @@ CrocAgentic is a secure, multi-agent AI framework that acts as the **body** for 
 
 ```bash
 # Clone
-git clone https://github.com/crocagentic/crocagentic.git
+git clone https://github.com/Heyz24/crocagentic.git
 cd crocagentic
 
 # Install
