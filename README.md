@@ -162,7 +162,7 @@ We welcome contributions. See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## License
 
-MIT — Copyright © 2026 Harshal Vakharia
+Apache2.0 — Copyright © 2026 Harshal Vakharia
 
 ---
 
