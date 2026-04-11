@@ -4,15 +4,15 @@
 
 **The secure, modular AI agent framework. Brain by you. Body by us.**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/crocagentic/crocagentic/releases)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/Heyz24/crocagentic/releases)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18.0.0-green.svg)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue.svg)](https://www.typescriptlang.org)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 *Bring your own LLM. We handle everything else.*
 
-[**Quick Start**](#quick-start) · [**Features**](#features) · [**Connectors**](#connectors) · [**Contributing**](CONTRIBUTING.md) · [**Releases**](https://github.com/crocagentic/crocagentic/releases)
+[**Quick Start**](#quick-start) · [**Features**](#features) · [**Connectors**](#connectors) · [**Contributing**](CONTRIBUTING.md) · [**Releases**](https://github.com/Heyz24/crocagentic/releases)
 
 </div>
 
@@ -34,7 +34,7 @@ CrocAgentic is a secure, multi-agent AI framework that acts as the **body** for 
 
 ```bash
 # Clone
-git clone https://github.com/crocagentic/crocagentic.git
+git clone https://github.com/Heyz24/crocagentic.git
 cd crocagentic
 
 # Install
@@ -162,7 +162,7 @@ We welcome contributions. See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## License
 
-MIT — Copyright © 2026 Harshal Vakharia
+Apache2.0 — Copyright © 2026 Harshal Vakharia
 
 ---
 

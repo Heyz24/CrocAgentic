@@ -52,7 +52,7 @@ refactor: code cleanup
 ## Development Setup
 
 ```bash
-git clone https://github.com/crocagentic/crocagentic.git
+git clone https://github.com/Heyz24/crocagentic.git
 cd crocagentic
 npm install
 cp .env.example .env
