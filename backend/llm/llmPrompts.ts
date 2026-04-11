@@ -1,102 +1,122 @@
 /**
  * backend/llm/llmPrompts.ts
- * CrocAgentic Phase 12 — Hardened LLM Prompts.
- *
- * Enforces strict JSON output from any LLM.
- * Multiple extraction strategies for robustness.
+ * CrocAgentic Phase 12 — Hardened LLM Prompts with Conversational Path.
  */
 
 import type { Plan } from "../../utils/zodSchemas";
 
-export const THINKER_SYSTEM_PROMPT = `You are a task planning agent. You MUST respond with ONLY a valid JSON object. No text before or after. No markdown. No explanation. No code fences. Just raw JSON.
+// Detect if goal is conversational (should answer directly, not plan a command)
+export function isConversationalGoal(goal: string): boolean {
+  const patterns = [
+    /^(what|who|where|when|why|how|is|are|can|could|would|should|do|does|did)\s/i,
+    /^(tell me|explain|describe|define|what is|what are|who is|who are)/i,
+    /your (name|version|purpose|goal|role|identity|creator|made by)/i,
+    /^(hi|hello|hey|greet|good\s*(morning|evening|afternoon|night))/i,
+    /^(thanks|thank you|great|awesome|nice|good job)/i,
+  ];
+  return patterns.some((p) => p.test(goal.trim()));
+}
 
-REQUIRED FORMAT (copy this exactly, replace cmd values):
-{"steps":[{"stepId":1,"type":"RUN_COMMAND","cmd":["echo","task done"],"cwd":"/workspace","timeout":5000}],"requestedPermissions":["READ_FILESYSTEM"]}
+export const THINKER_SYSTEM_PROMPT = `You are a task planning agent. Your ONLY job is to output a valid JSON execution plan.
+
+CRITICAL: Output ONLY raw JSON. No markdown. No explanation. No text before or after. Just JSON.
+
+EXACT FORMAT TO OUTPUT:
+{"steps":[{"stepId":1,"type":"RUN_COMMAND","cmd":["echo","your response here"],"cwd":"/workspace","timeout":5000}],"requestedPermissions":["READ_FILESYSTEM"]}
 
 RULES:
-- Output ONLY the JSON object above, nothing else
-- cmd must use safe commands: echo, ls, find, cat, pwd, mkdir, touch, cp, mv, grep, head, tail, date, node, python
-- cwd must be exactly "/workspace"
-- requestedPermissions must contain at least one entry
-- NEVER use rm, sudo, chmod, curl | bash, or any destructive commands
-- Keep it to 1-3 steps maximum`;
+- Output ONLY the JSON object, nothing else
+- For conversational questions (what is your name, explain X, etc): use cmd ["echo","your answer here"]  
+- For file tasks: use cmd ["ls","-la"] or ["find",".","name","*.ext"]
+- For date/time: use cmd ["date"]
+- cwd must be "/workspace"
+- requestedPermissions must have at least one entry
+- NEVER use rm, sudo, chmod, or destructive commands
+- Maximum 3 steps`;
 
 export function buildThinkerPrompt(goal: string): string {
+  const isConversational = isConversationalGoal(goal);
+
+  if (isConversational) {
+    return `Task: ${goal}
+
+This is a conversational question. Answer it using an echo command.
+Output ONLY this JSON (replace YOUR_ANSWER with your actual answer):
+{"steps":[{"stepId":1,"type":"RUN_COMMAND","cmd":["echo","YOUR_ANSWER"],"cwd":"/workspace","timeout":5000}],"requestedPermissions":["READ_FILESYSTEM"]}
+
+Example for "what is your name":
+{"steps":[{"stepId":1,"type":"RUN_COMMAND","cmd":["echo","I am CrocAgentic, a secure AI agent framework. My purpose is to execute tasks safely using any LLM you provide."],"cwd":"/workspace","timeout":5000}],"requestedPermissions":["READ_FILESYSTEM"]}
+
+Output JSON now (no other text):`;
+  }
+
   return `Task: ${goal}
 
-Respond with ONLY this JSON (no other text, no markdown, no explanation):
-{"steps":[{"stepId":1,"type":"RUN_COMMAND","cmd":["REPLACE_WITH_COMMAND","ARG"],"cwd":"/workspace","timeout":5000}],"requestedPermissions":["READ_FILESYSTEM"]}
+Output ONLY valid JSON, no other text:
+{"steps":[{"stepId":1,"type":"RUN_COMMAND","cmd":["COMMAND","ARG"],"cwd":"/workspace","timeout":5000}],"requestedPermissions":["READ_FILESYSTEM"]}
 
-Choose appropriate cmd for the task. Output only JSON.`;
+Choose the appropriate command for this task. Output JSON only:`;
 }
 
 export function buildRetryPrompt(goal: string, error: string): string {
   return `Task: ${goal}
-Error from last attempt: ${error}
+Previous error: ${error}
 
-You MUST output ONLY valid JSON. Nothing else. Example:
-{"steps":[{"stepId":1,"type":"RUN_COMMAND","cmd":["ls","-la"],"cwd":"/workspace","timeout":5000}],"requestedPermissions":["READ_FILESYSTEM"]}
+Output ONLY this exact JSON format (replace values as needed):
+{"steps":[{"stepId":1,"type":"RUN_COMMAND","cmd":["echo","response or ls -la for files"],"cwd":"/workspace","timeout":5000}],"requestedPermissions":["READ_FILESYSTEM"]}
 
-Output JSON now:`;
+JSON output only:`;
 }
 
 export function extractPlanFromResponse(raw: string): Plan | null {
-  if (!raw || raw.trim().length === 0) return null;
+  if (!raw?.trim()) return null;
 
   let text = raw.trim();
 
-  // Strategy 1: Strip all markdown fences
+  // Strip markdown
   text = text.replace(/^```(?:json)?\s*/im, "").replace(/```\s*$/im, "").trim();
 
-  // Strategy 2: Find outermost { }
+  // Strategy 1: Find outermost {}
   const start = text.indexOf("{");
   const end   = text.lastIndexOf("}");
   if (start !== -1 && end !== -1 && end > start) {
     try {
-      const slice  = text.slice(start, end + 1);
-      const parsed = JSON.parse(slice) as Record<string, unknown>;
+      const parsed = JSON.parse(text.slice(start, end + 1)) as Record<string, unknown>;
       return autoFixPlan(parsed);
-    } catch { /* try next */ }
+    } catch { /* next */ }
   }
 
-  // Strategy 3: Find any JSON-like structure with "steps" key
+  // Strategy 2: Find "steps" array
   const stepsMatch = text.match(/"steps"\s*:\s*(\[[\s\S]*?\])/);
   if (stepsMatch) {
     try {
       const steps = JSON.parse(stepsMatch[1]) as Array<Record<string, unknown>>;
       return autoFixPlan({ steps, requestedPermissions: ["READ_FILESYSTEM"] });
-    } catch { /* try next */ }
+    } catch { /* next */ }
   }
 
-  // Strategy 4: Build a minimal plan from any command-like content
-  const cmdMatch = text.match(/"cmd"\s*:\s*(\[[\s\S]*?\])/);
-  if (cmdMatch) {
-    try {
-      const cmd = JSON.parse(cmdMatch[1]) as string[];
-      return {
-        steps: [{ stepId: 1, type: "RUN_COMMAND", cmd, cwd: "/workspace", timeout: 5000 }],
-        requestedPermissions: ["READ_FILESYSTEM"],
-      };
-    } catch { /* give up */ }
+  // Strategy 3: Extract any echo/ls command
+  const echoMatch = text.match(/["']echo["']\s*,\s*["']([^"']+)["']/);
+  if (echoMatch) {
+    return {
+      steps: [{ stepId: 1, type: "RUN_COMMAND", cmd: ["echo", echoMatch[1]], cwd: "/workspace", timeout: 5000 }],
+      requestedPermissions: ["READ_FILESYSTEM"],
+    };
   }
 
   return null;
 }
 
-// Auto-fix common LLM output issues
 function autoFixPlan(parsed: Record<string, unknown>): Plan {
-  // Fix missing requestedPermissions
   if (!parsed.requestedPermissions || !Array.isArray(parsed.requestedPermissions) ||
       (parsed.requestedPermissions as unknown[]).length === 0) {
     parsed.requestedPermissions = ["READ_FILESYSTEM"];
   }
 
-  // Fix steps array
   if (!Array.isArray(parsed.steps) || (parsed.steps as unknown[]).length === 0) {
     parsed.steps = [{ stepId: 1, type: "RUN_COMMAND", cmd: ["ls", "-la"], cwd: "/workspace", timeout: 5000 }];
   }
 
-  // Fix each step
   parsed.steps = (parsed.steps as Array<Record<string, unknown>>).map((step, i) => ({
     stepId:  step.stepId  ?? i + 1,
     type:    step.type    ?? "RUN_COMMAND",

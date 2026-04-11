@@ -356,6 +356,9 @@
       <div class="input-area">
         <input class="goal-input" id="goalInput" placeholder="Type your task in plain English..." autofocus
           onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();runTask()}" />
+        <label title="Attach a file" style="cursor:pointer;display:flex;align-items:center;padding:0 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--muted);font-size:18px;transition:all .15s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">
+          📎<input type="file" id="fileInput" style="display:none" onchange="handleFileAttach(this)" accept=".txt,.md,.json,.csv,.py,.js,.ts,.html,.xml,.yaml,.yml,.pdf" />
+        </label>
         <div class="profile-pills" style="gap:6px;align-items:center">
           <button class="pill active" onclick="selectProfile(this,'default')">default</button>
           <button class="pill" onclick="selectProfile(this,'coder')">coder</button>
@@ -577,10 +580,7 @@ function updateAgent(id, state, decision, ms) {
   }
 }
 
-async function runTask() {
-  if (running) return;
-  const goal = document.getElementById('goalInput').value.trim();
-  if (!goal) return;
+
 
   running = true;
   document.getElementById('runBtn').disabled = true;
@@ -643,6 +643,42 @@ async function runTask() {
   running = false;
   document.getElementById('runBtn').disabled = false;
 }
+
+function handleFileAttach(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const content = e.target.result;
+    const currentGoal = document.getElementById('goalInput').value.trim();
+    const task = currentGoal || 'analyse this file and provide a summary';
+    // Store file content for next run
+    window._attachedFile = { name: file.name, content: content.slice(0, 10000), task };
+    document.getElementById('goalInput').value = task;
+    document.getElementById('goalInput').placeholder = `📎 ${file.name} attached — describe what to do with it`;
+    document.getElementById('goalInput').style.borderColor = 'var(--accent)';
+  };
+  reader.readAsText(file);
+  input.value = ''; // reset
+}
+
+async function runTask() {
+  if (running) return;
+  let goal = document.getElementById('goalInput').value.trim();
+  if (!goal) return;
+
+  // If file attached, include content in goal
+  if (window._attachedFile) {
+    const f = window._attachedFile;
+    goal = `${goal}
+
+File: ${f.name}
+Content:
+${f.content}`;
+    window._attachedFile = null;
+    document.getElementById('goalInput').style.borderColor = '';
+    document.getElementById('goalInput').placeholder = 'Type your task in plain English...';
+  }
 
 async function loadStats() {
   try {
@@ -783,7 +819,12 @@ async function resolveEscalation(id, approve) {
 async function loadHistory() {
   try {
     const data = await fetch(`${API}/tasks?limit=20`).then(r=>r.json());
-    const tasks = Array.isArray(data) ? data : (data.tasks ?? []);
+    // Handle different response formats
+    let tasks = [];
+    if (Array.isArray(data)) tasks = data;
+    else if (Array.isArray(data.tasks)) tasks = data.tasks;
+    else if (Array.isArray(data.entries)) tasks = data.entries;
+    else if (data.results) tasks = data.results;
     document.getElementById('historyBody').innerHTML = tasks.length === 0
       ? '<tr><td colspan="5" style="color:var(--muted);text-align:center;padding:20px">No tasks yet</td></tr>'
       : tasks.map(t => `

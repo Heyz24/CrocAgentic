@@ -10,6 +10,7 @@
 import { BaseAgent, AgentResult } from "./baseAgent";
 import { createPlan } from "../planner";
 import { routeLLMRequest } from "../llm/llmRouter";
+import { routeTaskToModel } from "../llm/routing/modelRouter";
 import type { Plan } from "../../utils/zodSchemas";
 
 export interface ThinkerResult {
@@ -32,7 +33,9 @@ export class Thinker extends BaseAgent {
       const { plan: deterministicPlan } = createPlan(goal);
 
       // Route through LLM (may use LLM or fall back to deterministic)
-      const routerResult = await routeLLMRequest(goal, deterministicPlan);
+      // Route to correct model based on task type
+    const { taskType, modelConfig } = routeTaskToModel(goal);
+    const routerResult = await routeLLMRequest(goal, deterministicPlan);
 
       const { plan, usedLLM, provider, model, fallback, fallbackReason, warnings } = routerResult;
 

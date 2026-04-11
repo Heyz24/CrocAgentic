@@ -12,6 +12,7 @@ import { callClaude }  from "./providers/claudeProvider";
 import { callOpenAI }  from "./providers/openaiProvider";
 import { callGemini }  from "./providers/geminiProvider";
 import { callOllama }  from "./providers/ollamaProvider";
+import { routeTaskToModel, reloadModelConfig } from "./routing/modelRouter";
 import { validateLLMOutput, ValidationResult } from "./llmOutputValidator";
 import {
   THINKER_SYSTEM_PROMPT,
@@ -80,6 +81,9 @@ async function callProvider(req: LLMRequest): Promise<LLMResponse> {
 }
 
 // ─── Main Router ───────────────────────────────────────────────────────────────
+
+// Re-export for convenience
+export { reloadModelConfig } from "./routing/modelRouter";
 
 export async function routeLLMRequest(
   goal:              string,

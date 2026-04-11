@@ -1,6 +1,6 @@
 /**
  * backend/server.ts
- * CrocAgentic v0.11.0 — Phase 6 Server.
+ * CrocAgentic v0.12.0 — Phase 6 Server.
  * Connectors: Webhook, FileWatcher, Telegram, Slack, Email.
  * Multi-model routing integrated.
  */
@@ -112,7 +112,7 @@ async function main() {
   try {
     await fastify.listen({ port: PORT, host: HOST });
 
-    fastify.log.info(`🐊 CrocAgentic v0.11.0 at http://${HOST}:${PORT}`);
+    fastify.log.info(`🐊 CrocAgentic v0.12.0 at http://${HOST}:${PORT}`);
     fastify.log.info(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
 
     // LLM status

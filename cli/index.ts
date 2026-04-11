@@ -143,6 +143,13 @@ async function handleBuiltinCommand(input: string): Promise<{ handled: boolean; 
       "  clear             — clear screen",
       "  exit / quit       — exit CrocAgentic",
       "",
+      color("File commands:", C.bold),
+      "  attach <filepath> — attach a file to next task",
+      "  attach <filepath> <task description>",
+      "  Examples:",
+      "    attach report.pdf summarise this report",
+      "    attach data.csv   analyse this data",
+      "",
       color("Or type anything in plain English:", C.bold),
       "  analyse the sales data in q3.csv",
       "  write a Python script to sort a CSV file",
@@ -265,6 +272,54 @@ async function startREPL(options: CLIOptions): Promise<void> {
     const builtin = await handleBuiltinCommand(input);
     if (builtin.handled) {
       if (builtin.output) console.log(builtin.output);
+      console.log();
+      rl.prompt();
+      return;
+    }
+
+    // Handle file attach command
+    if (input.toLowerCase().startsWith("attach ")) {
+      const parts = input.slice(7).trim().split(/\s+/);
+      const filePath = parts[0];
+      const taskDesc = parts.slice(1).join(" ") || "analyse this file";
+      
+      const fullPath = require("path").resolve(filePath);
+      if (!require("fs").existsSync(fullPath)) {
+        console.log(color(`\n✗ File not found: ${filePath}`, C.red));
+        console.log();
+        rl.prompt();
+        return;
+      }
+      
+      const fs = require("fs");
+      const stat = fs.statSync(fullPath);
+      const ext  = require("path").extname(filePath).toLowerCase();
+      const textExts = [".txt", ".md", ".json", ".csv", ".ts", ".js", ".py", ".html", ".xml", ".yaml", ".yml"];
+      
+      let fileContent = "";
+      if (textExts.includes(ext) && stat.size < 500_000) {
+        fileContent = fs.readFileSync(fullPath, "utf-8").slice(0, 10_000);
+        process.stdout.write(color(\`⏳ Processing file: \${filePath}...\r\`, C.gray));
+        
+        const enrichedGoal = \`\${taskDesc}\n\nFile: \${require("path").basename(filePath)}\nContent:\n\${fileContent}\`;
+        
+        try {
+          const result = await runPipeline(enrichedGoal, {
+            autoApproveLowRisk: true,
+            userId:    options.userId,
+            projectId: options.projectId,
+            profile:   options.profile,
+          });
+          process.stdout.write("\x1b[2K\r");
+          console.log(formatResult(result, options.verbose));
+        } catch (err) {
+          process.stdout.write("\x1b[2K\r");
+          console.log(formatError((err as Error).message));
+        }
+      } else {
+        console.log(color(\`\n✗ Cannot read file: \${ext} files over 500KB not supported in CLI. Use the GUI for large files.\`, C.yellow));
+      }
+      
       console.log();
       rl.prompt();
       return;
